@@ -1,0 +1,153 @@
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>Réinitialisation du mot de passe</h4>
+                </div>
+                <div class="card-body">
+                    <?php if (isset($_SESSION['error'])): ?>
+                    <div class="alert alert-danger">
+                        <?= $_SESSION['error']; unset($_SESSION['error']); ?>
+                    </div>
+                    <?php endif; ?>
+
+                    <form action="reset_password.php" method="POST">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email ou identifiant</label>
+                            <input type="text" class="form-control" id="email" name="email" required>
+                            <div class="form-text">Entrez l'email associé à votre compte</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Envoyer le lien</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Dans admin/dashboard.php -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                Répartition des notes
+            </div>
+            <div class="card-body">
+                <canvas id="notesChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                Étudiants par formation
+            </div>
+            <div class="card-body">
+                <canvas id="formationsChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ajouter ces scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Graphique des notes
+    fetch('stats_notes.php')
+        .then(response => response.json())
+        .then(data => {
+            new Chart(
+                document.getElementById('notesChart'),
+                {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Nombre d\'étudiants',
+                            data: data.values,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.7)',
+                                'rgba(54, 162, 235, 0.7)',
+                                'rgba(255, 206, 86, 0.7)',
+                                'rgba(75, 192, 192, 0.7)',
+                                'rgba(153, 102, 255, 0.7)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                }
+            );
+        });
+
+    // Graphique des formations
+    fetch('stats_formations.php')
+        .then(response => response.json())
+        .then(data => {
+            new Chart(
+                document.getElementById('formationsChart'),
+                {
+                    type: 'pie',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            data: data.values,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.7)',
+                                'rgba(54, 162, 235, 0.7)',
+                                'rgba(255, 206, 86, 0.7)'
+                            ]
+                        }]
+                    }
+                }
+            );
+        });
+</script>
+<div class="container">
+    <form method="get" action="resultats_recherche.php" class="mb-4">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Nom étudiant</label>
+                <input type="text" name="nom" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Formation</label>
+                <select name="formation" class="form-select">
+                    <option value="">Toutes</option>
+                    <?php foreach($formations as $f): ?>
+                    <option value="<?= $f['id_formation'] ?>">
+                        <?= $f['libelle_formation'] ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Matière</label>
+                <select name="matiere" class="form-select">
+                    <option value="">Toutes</option>
+                    <?php foreach($matieres as $m): ?>
+                    <option value="<?= $m['code_matiere'] ?>">
+                        <?= $m['libelle_matiere'] ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Note min</label>
+                <input type="number" name="note_min" min="0" max="20" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Note max</label>
+                <input type="number" name="note_max" min="0" max="20" class="form-control">
+            </div>
+            <div class="col-md-6 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Rechercher</button>
+            </div>
+        </div>
+    </form>
+</div>
